@@ -84,7 +84,7 @@ mvn clean install
   
 ## 3.执行goal
 ```shell
-mvn scalikejdbc:generate-domain-models
+mvn scalikejdbc-maven-plugin:generate-domain-models
 ```
 ## 生成如下对象
 ![ ][1]
