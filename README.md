@@ -1,4 +1,6 @@
 # scalikejdbc-maven-plugin
+ [https://github.com/qintang/scalikejdbc-maven-plugin][4]
+
 ## 自动生成scalikejdbc domain scala对象
 生成对象如下:
 ```scala
@@ -89,4 +91,12 @@ mvn scalikejdbc-maven-plugin:generate-domain-models
 ## 生成如下对象
 ![ ][1]
 
+参考
+== 
+  * [scalikejdbc-async ][2] scalikejdbc 异步sql执行
+  * [querydsl-sql-maven-plugin][3] querydsl domain 生成插件
+
 [1]: ./doc/img/generate.png
+[2]: https://github.com/scalikejdbc/scalikejdbc-async
+[3]: https://github.com/smith61/querydsl-sql-maven-plugin.git
+[4]: https://github.com/qintang/scalikejdbc-maven-plugin
