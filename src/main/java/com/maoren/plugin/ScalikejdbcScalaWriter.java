@@ -281,6 +281,9 @@ public class ScalikejdbcScalaWriter extends AbstractCodeWriter<ScalikejdbcScalaW
         }
         append(" {").nl().nl();
 
+        //加入 override val tableName = "MEMBER"
+        append("  override val tableName = \"").append(((EntityType) type).getData().get("table").toString()).append("\"").nl();
+
         //加入override val columns = Seq("id", "name")
         StringBuffer sb=new StringBuffer();
         if (!((EntityType)type).getProperties().isEmpty()){
