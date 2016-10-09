@@ -1,4 +1,4 @@
 create table PERSON (
-    ID int not null,
+    ID int AUTO_INCREMENT,
     NAME varchar(100) not null
 );

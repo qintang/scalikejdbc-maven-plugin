@@ -237,6 +237,7 @@ public class ScalikejdbcMetaDataExporter {
         Number columnDigits = (Number) columns.getObject("DECIMAL_DIGITS");
         int columnIndex = columns.getInt("ORDINAL_POSITION");
         int nullable = columns.getInt("NULLABLE");
+        Object IS_AUTOINCREMENT=columns.getObject("IS_AUTOINCREMENT");
 
         String propertyName = namingStrategy.getPropertyName(normalizedColumnName, classModel);
         Class<?> clazz = configuration.getJavaType(columnType,
@@ -266,6 +267,9 @@ public class ScalikejdbcMetaDataExporter {
             column = column.withDigits(columnDigits.intValue());
         }
         property.getData().put("COLUMN", column);
+        property.getData().put("IS_AUTOINCREMENT",IS_AUTOINCREMENT.toString().equalsIgnoreCase("YES")?true:false);
+
+        //
 
         if (columnAnnotations) {
             property.addAnnotation(new ColumnImpl(normalizedColumnName));

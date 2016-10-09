@@ -198,7 +198,8 @@ public class ScalikejdbcMetaDataSerializer extends EntitySerializer {
         }
 
         //writer.imports(ColumnMetadata.class, java.sql.Types.class);
-        writer.importClasses("org.joda.time.DateTime","scalikejdbc._","javax.annotation.Generated");
+        writer.importClasses("org.joda.time.DateTime","scalikejdbc._","javax.annotation.Generated","async._",
+                "scala.concurrent._","FutureImplicits._");
 
         //不需要导入了
         /*if (!entityPathType.getPackage().equals(ColumnMetadata.class.getPackage())) {

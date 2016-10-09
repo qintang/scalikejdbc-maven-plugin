@@ -171,6 +171,10 @@ public class ScalikejdbcScalaWriter extends AbstractCodeWriter<ScalikejdbcScalaW
         if(type.getFullName().equals("java.sql.Timestamp")){
             return "DateTime";
         }
+
+        if(type.getFullName().equals("java.math.BigDecimal")){
+            return "Double";
+        }
         Set<String> scalat=new HashSet<>();
         scalat.add(Long.class.getCanonicalName());
         scalat.add(Boolean.class.getCanonicalName());
@@ -303,9 +307,112 @@ public class ScalikejdbcScalaWriter extends AbstractCodeWriter<ScalikejdbcScalaW
                 .append("])(rs: WrappedResultSet): ")
                 .append(getGenericName(false, type)).append(" = apply(c.resultName)(rs)").nl();
 
+        //加入create
+        createMethod(type);
+
         goIn();
         this.type = type;
         return this;
+    }
+
+    /**
+     *
+     *
+     def create(name: String, url: Option[String] = None, createdAt: DateTime = DateTime.now)
+     (implicit session: AsyncDBSession = AsyncDB.sharedSession, cxt: EC = ECGlobal): Future[Company] = {
+     for {
+        id <- withSQL {
+            insert.into(Company).namedValues(
+                column.name -> name,
+                column.url -> url,
+                column.createdAt -> createdAt)
+            .returningId // if you run this example for MySQL, please remove this line
+         }.updateAndReturnGeneratedKey()
+        } yield Company(id = id, name = name, url = url, createdAt = createdAt)
+     }
+     * */
+    private void createMethod(Type type) throws IOException{
+        boolean existsAutoC=false;
+        for (Property pro: ((EntityType)type).getProperties()) {
+            if (pro.getData().get("IS_AUTOINCREMENT").equals(true)) {//自增长字段
+                existsAutoC=true;
+                break;
+            }
+        }
+        if (!existsAutoC){
+            return;
+        }
+
+        append("  def create(");
+        if (!((EntityType)type).getProperties().isEmpty()){
+            boolean first = true;
+            for (Property pro: ((EntityType)type).getProperties()) {
+                if(pro.getData().get("IS_AUTOINCREMENT").equals(true)){//自增长字段
+                    continue;
+                }
+                if (!first) {
+                    append(COMMA);
+                }
+
+                String optionType=getGenericName(true, pro.getType());
+                if (((ColumnMetadata)pro.getData().get("COLUMN")).isNullable())
+                    optionType="Option["+getGenericName(true, pro.getType())+"]"+" = None";
+                line("        ",escape(pro.getEscapedName())+": "+optionType);
+                first = false;
+            }
+        }
+        append(")").nl();
+        append("        (implicit session: AsyncDBSession = AsyncDB.sharedSession, ").
+                append("cxt: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global): Future[").
+                append(getGenericName(false, type)).append("] = {").nl();
+        append("    for {").nl();
+
+        for (Property pro: ((EntityType)type).getProperties()) {
+            if (pro.getData().get("IS_AUTOINCREMENT").equals(true)) {//自增长字段
+                append("        "+escape(pro.getEscapedName())).append(" <- withSQL {").nl();
+                break;
+            }
+        }
+        append("    insert.into(").append(getGenericName(false, type)).append(").namedValues(").nl();
+
+        boolean first = true;
+        for (Property pro: ((EntityType)type).getProperties()) {
+            if (pro.getData().get("IS_AUTOINCREMENT").equals(true)) {//自增长字段
+                continue;
+            }
+            if (!first) {
+                append(COMMA);
+            }
+            String optionType=getGenericName(true, pro.getType());
+
+            line("column.",escape(pro.getEscapedName())+" -> "+escape(pro.getEscapedName()));
+            first = false;
+        }
+        append(")").nl();
+        append("}.updateAndReturnGeneratedKey()").nl();
+        //} yield Company(id = id, name = name, url = url, createdAt = createdAt)
+        append("} yield ").append(getGenericName(false, type)).append("(");
+        first=true;
+        for (Property pro: ((EntityType)type).getProperties()) {
+            if (!first) {
+                append(COMMA);
+            }
+            String optionType=getGenericName(true, pro.getType());
+
+            append("        "+escape(pro.getEscapedName())+" = "+escape(pro.getEscapedName()));
+            //自增长字段类型不是Long,构建对象需要强制转换
+            if (pro.getData().get("IS_AUTOINCREMENT").equals(true) &&
+                    !optionType.equals("Long")) {//自增长字段
+               append(".to") .append(optionType);
+            }
+            nl();
+            first = false;
+        }
+        append(")").nl();
+
+
+        append("}").nl();
+
     }
 
     @Override
